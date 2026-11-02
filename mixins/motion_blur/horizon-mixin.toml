@@ -1,0 +1,65 @@
+# Object motion blur: the renderer's motion vectors for the world and its entities, and a
+# depth-aware blur along them. Settings: Options > Mods > Motion Blur.
+[mod]
+id = "motion_blur"
+version = "0.1.0"
+priority = 100
+
+[compatibility]
+horizon_revision = "c9d474dd9116e84c243f8992d75c11314df56f06"
+
+[[module]]
+id = "runtime"
+file = "crates/horizon-client-render/src/gfx/native_render.rs"
+name = "motion_blur"
+visibility = "pub"
+source = "motion_blur.rs"
+
+[[injection]]
+id = "world_drawn"
+kind = "HEAD"
+target = "horizon_client_render::gfx::native_render::native_world_drawn"
+helper = "world_drawn.rs"
+bindings = [{ name = "world", ty = "&mut crate::gfx::native_render::WorldDrawn<'_>", value = "&mut *world" }]
+
+[[injection]]
+id = "needs"
+kind = "HEAD"
+target = "horizon_client_render::gfx::native_render::native_render_needs"
+helper = "needs.rs"
+bindings = [{ name = "needs", ty = "&mut crate::gfx::native_render::RenderNeeds", value = "&mut *needs" }]
+
+[[injection]]
+id = "frame"
+kind = "HEAD"
+target = "horizon_client::game::native_hooks::Game<'_>::native_frame"
+helper = "frame.rs"
+bindings = [{ name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" }]
+
+[[injection]]
+id = "list"
+kind = "HEAD"
+target = "horizon_client::game::native_hooks::Game<'_>::native_mods"
+helper = "list.rs"
+bindings = [{ name = "mods", ty = "&mut Vec<crate::game::native_hooks::NativeMod>", value = "&mut *mods" }]
+
+[[injection]]
+id = "settings"
+kind = "HEAD"
+target = "horizon_client::game::native_hooks::Game<'_>::native_settings"
+helper = "settings.rs"
+bindings = [
+  { name = "mod_id", ty = "&str", value = "mod_id" },
+  { name = "buttons", ty = "&mut Vec<String>", value = "&mut *buttons" },
+]
+
+[[injection]]
+id = "click"
+kind = "HEAD"
+target = "horizon_client::game::native_hooks::Game<'_>::native_settings_click"
+helper = "click.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+  { name = "mod_id", ty = "&str", value = "mod_id" },
+  { name = "button", ty = "usize", value = "button" },
+]
